@@ -15,7 +15,7 @@ namespace ocr.Controllers
         public const string trainedDataFolderName = "tdata";
         [HttpPost]
         [Route("OcrGenerate")]
-        public String DoOCR()
+        public async Task<String> DoOCR()
         {
             string result = "";
 
@@ -26,7 +26,7 @@ namespace ocr.Controllers
             wc.DownloadFile(pdfUrl, "output.pdf");
             wc.Dispose();
 
-            var document = new Document("output.pdf");
+            var document = await Task.FromResult(new Document("output.pdf"));
             var renderer = new Aspose.Pdf.Devices.PngDevice();
 
             string tessPath = Path.Combine(trainedDataFolderName, "");
