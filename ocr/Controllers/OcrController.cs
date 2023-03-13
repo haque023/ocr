@@ -7,7 +7,7 @@ using Tesseract;
 
 namespace ocr.Controllers
 {
-    [Route("ocr/[controller]")]
+    [Route("Ocr/[controller]")]
     [ApiController]
     public class OcrController : ControllerBase
     {
