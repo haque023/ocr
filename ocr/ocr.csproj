@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aspose.PDF" Version="23.2.0" />
+    <PackageReference Include="Hangfire.Core" Version="1.7.33" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     <PackageReference Include="Syncfusion.PDF.OCR.Net.Core" Version="20.4.0.53" />
     <PackageReference Include="Tesseract" Version="5.2.0" />

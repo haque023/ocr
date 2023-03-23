@@ -1,8 +1,11 @@
 ﻿using Aspose.Pdf;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using Syncfusion.Drawing;
+using System;
 using System.Security.Policy;
+using System.Text;
 using Tesseract;
 
 namespace ocr.Controllers
@@ -15,18 +18,32 @@ namespace ocr.Controllers
         public const string trainedDataFolderName = "tdata";
         [HttpPost]
         [Route("OcrGenerate")]
-        public async Task<String> DoOCR()
+        public async Task<String> DoOCR(IFormFile? Cv, string? url)
         {
             string result = "";
 
-
+            Document? document = new Document();
             using var wc = new System.Net.WebClient();
+            if (Cv == null && url != null)
+            {
+                wc.DownloadFile(url, "output.pdf");
+                wc.Dispose();
+                document = await Task.FromResult(new Document("output.pdf"));
 
-            var pdfUrl = "https://www.africau.edu/images/default/sample.pdf";
-            wc.DownloadFile(pdfUrl, "output.pdf");
-            wc.Dispose();
-
-            var document = await Task.FromResult(new Document("output.pdf"));
+            }
+           else if (Cv != null)
+            {
+                MemoryStream ms = new MemoryStream();
+                using (var writer = new StreamWriter(ms))
+                {
+                    await Cv.OpenReadStream().CopyToAsync(ms);
+                }
+                document = await Task.FromResult(new Document(Cv.OpenReadStream()));
+            }
+            else
+            {
+                throw new Exception("hello world");
+            }
             var renderer = new Aspose.Pdf.Devices.PngDevice();
 
             string tessPath = Path.Combine(trainedDataFolderName, "");
@@ -46,6 +63,41 @@ namespace ocr.Controllers
                 }
 
             }
+            //HttpClient client = new HttpClient();
+            var obj = new
+            {
+
+                strEmail = "emdad@ibos.io",
+                strCvData = result,
+                intAutoId = 0
+            };
+
+
+            //var jsonInString = JsonConvert.SerializeObject(obj);
+            //Uri siteUri = new Uri("https://localhost:44343/identity/Public/CvDataSavePost");
+            //var jsonContent = new StringContent(jsonInString, Encoding.UTF8, "application/json");
+
+            //var product = await client.PostAsJsonAsync(siteUri, jsonContent);
+
+            using (var client = new HttpClient())
+            {
+                var p = new
+                {
+
+                    strEmail = "emdad@ibos.io",
+                    strCvData = result,
+                    intAutoId = 0
+                };
+                client.BaseAddress = new Uri("https://localhost:44343/");
+                var response = await client.PostAsJsonAsync("identity/Public/CvDataSavePost", p);
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.Write("Success");
+                }
+                else
+                    Console.Write("Error");
+            }
+
 
             return String.IsNullOrWhiteSpace(result) ? "Ocr is finished. Return empty" : result;
         }
