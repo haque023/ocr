@@ -147,6 +147,40 @@ namespace ocr.Controllers
 
             return String.IsNullOrWhiteSpace(result) ? "Ocr is finished. Return empty" : result;
         }
-      
+        [HttpGet]
+        [Route("GetEblData")]
+        public async Task<object> GetEblData(string _text)
+        {
+            var nameRegex = @"(\d{1,2}.[J,F,M,A,M,A,S,O,N,D][a-z]{2} \d{4}) (-?[\d,]+(?:\.\d+)?) (-?[\d,]+(?:\.\d+)?)";
+
+            List<EblData> eblDatas = new List<EblData>();
+            MatchCollection matches = Regex.Matches(_text.ToString(), nameRegex);
+            var lastBalance = 0;
+            foreach (Match match in matches)
+            {
+                var AA = match.Index;
+                EblData ebl = new EblData();
+                var group1 = match.Success ? match.Groups[1].Value : "";
+                ebl.TransactionDate = group1;
+
+                var group2 = match.Success ? match.Groups[2].Value : "";
+                ebl.Narration = group2;
+
+                var group3 = match.Success ? match.Groups[3].Value : "";
+                var group4 = match.Success ? match.Groups[4].Value : "";
+
+                Decimal.TryParse(group4, out decimal Balance);
+                Decimal.TryParse(group3, out decimal value);
+                ebl.Balance = Balance;
+                ebl.Credit = lastBalance > ebl.Balance ? value : 0;
+                ebl.Debit = lastBalance < ebl.Balance ? value : 0;
+                var group5 = match.Success ? match.Groups[5].Value : "";
+                ebl.Narration += group5;
+                eblDatas.Add(ebl);
+            }
+            return eblDatas;
+
+
+        }
     }
 }
